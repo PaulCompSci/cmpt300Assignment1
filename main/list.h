@@ -9,10 +9,13 @@
 #define LIST_SUCCESS 0
 #define LIST_FAIL -1
 
+
 typedef struct Node_s Node;
 struct Node_s {
     // TODO: You should change this
     void* item ;
+    Node* next;
+    Node* previous ;
 
 };
 
@@ -24,8 +27,12 @@ typedef struct List_s List;
 struct List_s{
     // TODO: You should change this!
     int size;
-    Node* head ; 
-    
+    Node* head ;
+    Node* tail ;
+    Node* current ;
+    enum ListOutOfBounds outOfBounds;
+
+
 };
 
 // Maximum number of unique lists the system can support
