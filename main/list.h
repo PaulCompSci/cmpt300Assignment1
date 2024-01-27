@@ -9,23 +9,18 @@
 #define LIST_SUCCESS 0
 #define LIST_FAIL -1
 
-static int countList = 0 ; 
-
-
 typedef struct Node_s Node;
 struct Node_s {
-   void *element;
-
+    // TODO: You should change this
 };
 
 enum ListOutOfBounds {
     LIST_OOB_START,
     LIST_OOB_END
 };
-
 typedef struct List_s List;
 struct List_s{
-    
+    // TODO: You should change this!
 };
 
 // Maximum number of unique lists the system can support
