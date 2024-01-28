@@ -7,7 +7,10 @@ static List listHeadArray[LIST_MAX_NUM_HEADS];
 
 static int listHeadInitialized = 0;
 
-// Helper function to initialize the list head array
+static Node* freeNodes[LIST_MAX_NUM_NODES];
+static int freeNodeCount = 0;
+
+
 static void initializeListHeads() {
     for (int i = 0; i < LIST_MAX_NUM_HEADS; i++) {
         listHeadArray[i].size = 0;
@@ -16,6 +19,10 @@ static void initializeListHeads() {
         listHeadArray[i].current = NULL;
         listHeadArray[i].outOfBounds = LIST_OOB_START;
     }
+    for (int i = 0; i < LIST_MAX_NUM_NODES; i++) {
+        freeNodes[i] = &nodeArray[i];
+    }
+    freeNodeCount = LIST_MAX_NUM_NODES;
 }
 
 List* List_create() {
@@ -176,7 +183,7 @@ void* List_curr(List* pList){
 // If the current pointer is before the start of the pList, the item is added at the start. If 
 // the current pointer is beyond the end of the pList, the item is added at the end. 
 // Returns 0 on success, -1 on failure.
-int List_insert_after(List* pList, void* pItem){
+int List_inset_after(List* pList, void* pItem){r
 
     // Check if the list is valid and not NULL
     if (pList == NULL) {
@@ -598,5 +605,5 @@ void* List_search(List* pList, COMPARATOR_FN pComparator, void* pComparisonArg) 
 
 
 int main() {
-    printf("asdfadfasdf");
+
 }
