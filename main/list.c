@@ -455,45 +455,47 @@ void List_concat(List* pList1, List* pList2) {
 // pList and all its nodes no longer exists after the operation; its head and nodes are 
 // available for future operations.
 typedef void (*FREE_FN)(void* pItem);
-int List_insert_after(List* pList, void* pItem) {
-    if (pList == NULL || freeNodeCount <= 0) {
-        return LIST_FAIL;
+void List_free(List* pList, FREE_FN pItemFreeFn) {
+    // Check if the list is valid and not NULL
+    if (pList == NULL) {
+        return;
     }
 
-    // Pop a free node from the stack
-    Node* newNode = freeNodes[--freeNodeCount];
-    newNode->item = pItem;
+    // Iterate through the list and free each item
+    Node* currentNode = pList->head;
+    while (currentNode != NULL) {
+        // If a free function is provided, use it to free the item
+        if (pItemFreeFn != NULL && currentNode->item != NULL) {
+            (*pItemFreeFn)(currentNode->item);
+        }
 
-    if (pList->head == NULL) {
-        // List is empty; new node becomes the only node in the list
-        newNode->next = NULL;
-        newNode->previous = NULL;
-        pList->head = newNode;
-        pList->tail = newNode;
-    } else if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END) {
-        // Current pointer is beyond the end of the list or list is empty
-        newNode->next = NULL;
-        newNode->previous = pList->tail;
-        if (pList->tail != NULL) {
-            pList->tail->next = newNode;
-        }
-        pList->tail = newNode;
-    } else {
-        // Normal insertion after the current item
-        newNode->next = pList->current->next;
-        newNode->previous = pList->current;
-        pList->current->next = newNode;
-        if (newNode->next != NULL) {
-            newNode->next->previous = newNode;
-        }
+        Node* temp = currentNode;
+        currentNode = currentNode->next;
+
+        // Clear the current node
+        temp->item = NULL;
+        temp->next = NULL;
+        temp->previous = NULL;
+
+        // Push the node back to the free node stack
+        pushToFreeNodeStack(temp);
     }
 
-    pList->current = newNode;
-    pList->size++;
-    pList->outOfBounds = LIST_OOB_END;
-
-    return LIST_SUCCESS;
+    // Clear and make pList's head available for future use
+    pList->head = NULL;
+    pList->tail = NULL;
+    pList->current = NULL;
+    pList->size = 0;
+    pList->outOfBounds = LIST_OOB_START;
 }
+
+void pushToFreeNodeStack(Node* node) {
+    if (freeNodeCount < LIST_MAX_NUM_NODES) {
+        freeNodes[freeNodeCount++] = node;
+    }
+}
+
+
 
 // Search pList, starting at the current item, until the end is reached or a match is found. 
 // In this context, a match is determined by the comparator parameter. This parameter is a
