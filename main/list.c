@@ -4,11 +4,10 @@
 
 static Node nodeArray[LIST_MAX_NUM_NODES];
 static List listHeadArray[LIST_MAX_NUM_HEADS];
-
 static int listHeadInitialized = 0;
-
 static Node *freeNodes[LIST_MAX_NUM_NODES];
 static int freeNodeCount = 0;
+static int activeListCount = 0;
 
 void pushToFreeNodeStack(Node *node);
 
@@ -33,33 +32,47 @@ static void initializeListHeads()
 // Returns a NULL pointer on failure.
 List *List_create()
 {
-    // Initialize the list heads on first call
+    
     if (!listHeadInitialized)
     {
         initializeListHeads();
         listHeadInitialized = 1;
     }
 
-    // Find an available list head
+    if (activeListCount >= LIST_MAX_NUM_HEADS)
+    {
+        return NULL; // Maximum number of lists already created
+    }
+
     for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
     {
-        if (listHeadArray[i].size == 0 && listHeadArray[i].head == NULL)
+        if (listHeadArray[i].size == 0 && listHeadArray[i].head == NULL && listHeadArray[i].tail == NULL)
         {
-            listHeadArray[i].size = 0;
+            listHeadArray[i].size = 1; // Mark as used
             listHeadArray[i].head = NULL;
             listHeadArray[i].tail = NULL;
             listHeadArray[i].current = NULL;
             listHeadArray[i].outOfBounds = LIST_OOB_START;
+            activeListCount++; // Increment the count of active lists
+            printf("current number of list in list_create : %d \n", activeListCount);
             return &listHeadArray[i];
         }
     }
 
-    // Return NULL if no available list head is found
     return NULL;
 }
-
 int List_count(List *pList)
 {
+    // Check if the provided List pointer is NULL
+    if (pList == NULL)
+    {
+        // If pList is NULL, we cannot access its members,
+        // so return an error code. Here, I am using -1 to indicate an error.
+        return -1;
+    }
+
+    // If pList is not NULL, it is safe to access its members.
+    // Return the size of the list, which indicates how many items are in the list.
     return pList->size;
 }
 
@@ -559,6 +572,10 @@ void List_free(List *pList, FREE_FN pItemFreeFn)
     pList->current = NULL;
     pList->size = 0;
     pList->outOfBounds = LIST_OOB_START;
+
+    activeListCount--;
+
+    printf("current number of list in list_free : %d \n", activeListCount);
 }
 
 void pushToFreeNodeStack(Node *node)
