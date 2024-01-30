@@ -12,14 +12,13 @@ static int listCount = 0;
 void pushToFreeNodeStack(Node *node);
 
 List *List_create() {
+    // Initialize list heads only once
     if (!listHeadInitialized) {
         for (int i = 0; i < LIST_MAX_NUM_HEADS; i++) {
-            listHeadArray[i].size = 0;  // Initially, all list heads are unused
-            listHeadArray[i].head = NULL;
-            listHeadArray[i].tail = NULL;
-            listHeadArray[i].current = NULL;
-            listHeadArray[i].outOfBounds = LIST_OOB_START;
+            listHeadArray[i].flag = 0;  // Mark as unused
+            // Other initializations are not necessary here
         }
+        // Initialize free nodes
         for (int i = 0; i < LIST_MAX_NUM_NODES; i++) {
             freeNodes[i] = &nodeArray[i];
         }
@@ -27,13 +26,11 @@ List *List_create() {
         listHeadInitialized = 1;
     }
 
-    if (listCount >= LIST_MAX_NUM_HEADS) {
-        return NULL;  // All list heads are in use
-    }
-
+    // Find an unused list head
     for (int i = 0; i < LIST_MAX_NUM_HEADS; i++) {
-        if (listHeadArray[i].size == 0) {  // Find an unused list head
-            listHeadArray[i].size = 1;  // Mark as used
+        if (listHeadArray[i].flag == 0) {
+            listHeadArray[i].flag = 1;  // Mark as used
+            listHeadArray[i].size = 0;
             listHeadArray[i].head = NULL;
             listHeadArray[i].tail = NULL;
             listHeadArray[i].current = NULL;
@@ -43,8 +40,10 @@ List *List_create() {
         }
     }
 
-    return NULL;  // No unused list heads available
+    // No available list heads
+    return NULL;
 }
+
 
 
 int List_count(List *pList)
@@ -59,7 +58,7 @@ int List_count(List *pList)
 
     // If pList is not NULL, it is safe to access its members.
     // Return the size of the list, which indicates how many items are in the list.
-    return pList->size -1 ;
+    return pList->size ;
 }
 
 void *List_first(List *pList)
@@ -190,11 +189,26 @@ void *List_prev(List *pList)
 // Returns a pointer to the current item in pList.
 void *List_curr(List *pList)
 {
-if (pList->current == NULL) {
+    // Check if the list is valid and not NULL
+    if (pList == NULL)
+    {
+        printf("I am here1");
         return NULL;
     }
-    return pList->current->item;
 
+    // Check if the current item is NULL or if the current pointer is out of bounds
+    if (pList->current == NULL || pList->outOfBounds == LIST_OOB_START || pList->outOfBounds == LIST_OOB_END)
+    {
+
+        if (pList->current == NULL)
+            printf("null problem");
+
+        printf("I am here2");
+        return NULL;
+    }
+
+    // Return the item stored in the current node
+    return pList->current->item;
 }
 
 // Adds the new item to pList directly after the current item, and makes item the current item.
@@ -518,48 +532,47 @@ void List_concat(List *pList1, List *pList2)
 // pList and all its nodes no longer exists after the operation; its head and nodes are
 // available for future operations.
 typedef void (*FREE_FN)(void *pItem);
-void List_free(List *pList, FREE_FN pItemFreeFn)
-{
-    // Check if the list is valid and not NULL
-    if (pList == NULL)
-    {
+typedef void (*FREE_FN)(void *pItem); // Make sure this is declared somewhere in your header file
+
+void List_free(List *pList, FREE_FN pItemFreeFn) {
+    if (pList == NULL) {
         return;
     }
 
-    // Iterate through the list and free each item
     Node *currentNode = pList->head;
-    while (currentNode != NULL)
-    {
-        // If a free function is provided, use it to free the item
-        if (pItemFreeFn != NULL && currentNode->item != NULL)
-        {
-            (*pItemFreeFn)(currentNode->item);
-        }
-
+    while (currentNode != NULL) {
         Node *temp = currentNode;
         currentNode = currentNode->next;
+        
+        if (pItemFreeFn != NULL && temp->item != NULL) {
+            (*pItemFreeFn)(temp->item);
+        }
 
-        // Clear the current node
+        // Clear the node
         temp->item = NULL;
         temp->next = NULL;
         temp->previous = NULL;
 
-        // Push the node back to the free node stack
+        // Return the node to the free pool
         pushToFreeNodeStack(temp);
     }
 
-    // Clear and make pList's head available for future use
+    // Reset the list
+    pList->size = 0;
     pList->head = NULL;
     pList->tail = NULL;
     pList->current = NULL;
-    pList->size = 0;
     pList->outOfBounds = LIST_OOB_START;
 
+    // Reset the flag to mark it as unused
+    pList->flag = 0;
     listCount--;
 
-    printf("current number of list in list_free : %d \n", listCount);
-    printf("current free node count in list_free : %d \n", freeNodeCount);
+    // Debugging information
+    printf("List freed. Current number of lists: %d\n", listCount);
+    printf("Free node count: %d\n", freeNodeCount);
 }
+
 
 void pushToFreeNodeStack(Node *node)
 {

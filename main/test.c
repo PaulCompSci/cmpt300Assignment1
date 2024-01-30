@@ -16,7 +16,6 @@ int main()
 
     printf("\n");
 
-
     return 0;
 }
 
@@ -80,6 +79,9 @@ void testListCount()
 
     List *list1 = List_create();
     List *list2 = List_create();
+    
+    printf("Address of list1: %p\n", (void*)list1);
+    printf("Address of list2: %p\n", (void*)list2);
 
     int integer1 = 1;
     int integer2 = 2;
@@ -87,23 +89,27 @@ void testListCount()
     int integer4 = 4;
     int integer5 = 5;
     int success1 = List_append(list1, &integer1);
+    printf("success1 %d" ,success1) ;
     int success2 = List_append(list1, &integer2);
     int success3 = List_append(list1, &integer3);
     int success4 = List_append(list1, &integer4);
     int success5 = List_append(list1, &integer5);
 
-    printf("size of list1 : %d", List_count(list1));
+    printf("size of list1 : %d \n", List_count(list1));
 
     if (List_count(list1) == 5)
         printf("Test PASSED! \n");
     else
         printf("Test FAILED! \n");
-    void *currentItem = List_curr(list1);
+   
 
     if (List_count(list1) == 5 && List_count(list2) == 0)
         printf("Test Passed ! \n");
     else
     {
+
+        printf("size of list 1 : %d \n", List_count(list1));
+        printf("size of list 2 : %d \n", List_count(list2));
         printf("Test FAILED ! \n");
     }
 }
