@@ -72,11 +72,11 @@ int List_count(List *pList)
 // Returns NULL and sets current item to NULL if list is empty.
 void *List_first(List *pList)
 {
-   
+
     // Check if the list is valid and not NULL
     if (pList == NULL)
     {
-        
+
         return NULL;
     }
 
@@ -84,14 +84,14 @@ void *List_first(List *pList)
     if (pList->head == NULL)
     {
         // List is empty, set current to NULL and indicate that current is before the start
-        
+
         pList->current = NULL;
         pList->outOfBounds = LIST_OOB_START;
         return NULL;
     }
 
     // Set the current item to the head (first item) of the list
-   
+
     pList->current = pList->head;
     // Reset the outOfBounds flag as current is now a valid item within the list
     pList->outOfBounds = LIST_OOB_END;
@@ -104,74 +104,65 @@ void *List_first(List *pList)
 // Returns NULL and sets current item to NULL if list is empty.
 void *List_last(List *pList)
 {
-    // Check if the list is valid and not NULL
     if (pList == NULL)
     {
-        return NULL;
+        return NULL; // List is NULL
     }
 
-    // Check if the list is empty
     if (pList->tail == NULL)
     {
-        // List is empty, set current to NULL and indicate that current is beyond the end
+        // The list is empty, set current to NULL
         pList->current = NULL;
         pList->outOfBounds = LIST_OOB_END;
-        return NULL;
+        return NULL; // Return NULL as the list is empty
     }
 
-    // Set the current item to the tail (last item) of the list
+    // Set current to the last item
     pList->current = pList->tail;
-    // Reset the outOfBounds flag as current is now a valid item within the list
-    pList->outOfBounds = LIST_OOB_START;
+    pList->outOfBounds = LIST_OOB_END; // Reset outOfBounds as current is now a valid item
 
-    // Return the item stored in the tail node
-    return pList->tail->item;
+    return pList->tail->item; // Return the item at the tail of the list
 }
+
 // Advances pList's current item by one, and returns a pointer to the new current item.
 // If this operation advances the current item beyond the end of the pList, a NULL pointer
 // is returned and the current item is set to be beyond end of pList.
 void *List_next(List *pList)
 {
-
-    // Check if the list is valid and not NULL
     if (pList == NULL)
     {
-        return NULL;
+        return NULL; // List is NULL
     }
 
-    // Check if the current item is NULL or beyond the end of the list
-    if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END)
+    if (pList->current == NULL)
     {
-        pList->outOfBounds = LIST_OOB_END; // Set the out of bounds status to end
-        return NULL;
-    }
-
-    // If the current item is at the start (but not in the list), move to the head
-    if (pList->outOfBounds == LIST_OOB_START)
-    {
-        pList->current = pList->head;
-        // If the list is empty, return NULL
-        if (pList->current == NULL)
+        // Current is NULL. Check if it's because we're at the start or beyond the end.
+        if (pList->outOfBounds == LIST_OOB_START)
         {
-            pList->outOfBounds = LIST_OOB_END;
-            return NULL;
+            pList->current = pList->head; // Move to the first element
+        }
+        else
+        {
+            return NULL; // We're beyond the end or the list is empty
         }
     }
     else
     {
-        // Move the current item to the next node
+        // Move to the next element
         pList->current = pList->current->next;
     }
 
-    // Check if we have moved beyond the end of the list
+    // Set outOfBounds appropriately
     if (pList->current == NULL)
     {
-        pList->outOfBounds = LIST_OOB_END;
+        pList->outOfBounds = LIST_OOB_END; // We've moved beyond the end
         return NULL;
     }
-
-    // Return the item stored in the new current node
-    return pList->current->item;
+    else
+    {
+        pList->outOfBounds = LIST_OOB_END; // We're within the list bounds
+        return pList->current->item;       // Return the item
+    }
 }
 
 // Backs up pList's current item by one, and returns a pointer to the new current item.
@@ -179,39 +170,40 @@ void *List_next(List *pList)
 // is returned and the current item is set to be before the start of pList.
 void *List_prev(List *pList)
 {
-    // Check if the list is valid and not NULL
     if (pList == NULL)
     {
-        return NULL;
+        return NULL; // List is NULL
     }
 
-    // Check if the current item is before the start of the list
-    if (pList->outOfBounds == LIST_OOB_START)
-    {
-        // The current item is already before the start of the list
-        return NULL;
-    }
-
-    // If the current item is beyond the end of the list, set it to the tail
-    if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END)
-    {
-        pList->current = pList->tail;
-        pList->outOfBounds = LIST_OOB_START;
-        return pList->current != NULL ? pList->current->item : NULL;
-    }
-
-    // Back up the current item by one
-    pList->current = pList->current->previous;
-
-    // Check if the current item has moved before the start of the list
     if (pList->current == NULL)
     {
-        pList->outOfBounds = LIST_OOB_START;
-        return NULL;
+        // Current is NULL. Check if it's because we're at the end or before the start.
+        if (pList->outOfBounds == LIST_OOB_END)
+        {
+            pList->current = pList->tail; // Move to the last element
+        }
+        else
+        {
+            return NULL; // We're already before the start
+        }
+    }
+    else
+    {
+        // Move to the previous element
+        pList->current = pList->current->previous;
     }
 
-    // Return the item stored in the new current node
-    return pList->current->item;
+    // Set outOfBounds appropriately
+    if (pList->current == NULL)
+    {
+        pList->outOfBounds = LIST_OOB_START; // We've moved before the start
+        return NULL;
+    }
+    else
+    {
+        pList->outOfBounds = LIST_OOB_END; // We're within the list bounds
+        return pList->current->item;       // Return the item
+    }
 }
 
 // Returns a pointer to the current item in pList.
@@ -227,8 +219,9 @@ void *List_curr(List *pList)
     // Ensure current is not NULL and is within bounds
     if (pList->current == NULL || pList->outOfBounds != LIST_OOB_END)
     {
-        if(pList->current == NULL){
-            printf("damn it ") ;
+        if (pList->current == NULL)
+        {
+            printf("damn it ");
         }
         printf("adf     adfadfafdQW#@");
         return NULL;
@@ -241,54 +234,52 @@ void *List_curr(List *pList)
 // If the current pointer is before the start of the pList, the item is added at the start. If
 // the current pointer is beyond the end of the pList, the item is added at the end.
 // Returns 0 on success, -1 on failure.
-int List_insert_after(List *pList, void *pItem)
-{
-    if (pList == NULL || freeNodeCount <= 0)
-    {
+int List_insert_after(List *pList, void *pItem) {
+    if (pList == NULL || pItem == NULL || freeNodeCount <= 0) {
         return LIST_FAIL;
     }
 
-    // Pop a free node from the stack
     Node *newNode = freeNodes[--freeNodeCount];
     newNode->item = pItem;
 
-    if (pList->head == NULL)
-    {
-        // List is empty; new node becomes the only node in the list
+    // List is empty
+    if (pList->head == NULL) {
         newNode->next = NULL;
         newNode->previous = NULL;
         pList->head = newNode;
         pList->tail = newNode;
-    }
-    else if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END)
-    {
-        // Current pointer is beyond the end of the list or list is empty
+    } 
+    // Insert at the end if current is NULL or beyond the end
+    else if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END) {
         newNode->next = NULL;
         newNode->previous = pList->tail;
-        if (pList->tail != NULL)
-        {
-            pList->tail->next = newNode;
-        }
+        pList->tail->next = newNode;
         pList->tail = newNode;
-    }
-    else
-    {
-        // Normal insertion after the current item
+    } 
+    // Normal insertion after current
+    else {
         newNode->next = pList->current->next;
         newNode->previous = pList->current;
         pList->current->next = newNode;
-        if (newNode->next != NULL)
-        {
+
+        if (newNode->next != NULL) {
             newNode->next->previous = newNode;
+        } else {
+            // Update tail if new node is at the end
+            pList->tail = newNode;
         }
     }
 
-    pList->current = newNode;
-    pList->size++;
+    pList->current = newNode; // Update current
+    pList->size++;            // Increment size
     pList->outOfBounds = LIST_OOB_END;
 
     return LIST_SUCCESS;
 }
+
+
+
+
 
 // Adds item to pList directly before the current item, and makes the new item the current one.
 // If the current pointer is before the start of the pList, the item is added at the start.
@@ -351,8 +342,10 @@ int List_insert_before(List *pList, void *pItem)
 
 // Adds item to the end of pList, and makes the new item the current one.
 // Returns 0 on success, -1 on failure.
-int List_append(List *pList, void *pItem) {
-    if (pList == NULL || freeNodeCount <= 0) {
+int List_append(List *pList, void *pItem)
+{
+    if (pList == NULL || freeNodeCount <= 0)
+    {
         return LIST_FAIL;
     }
 
@@ -360,13 +353,16 @@ int List_append(List *pList, void *pItem) {
     newNode->item = pItem;
     newNode->next = NULL;
 
-    if (pList->head == NULL) {
+    if (pList->head == NULL)
+    {
         // List was empty
         pList->head = newNode;
         pList->tail = newNode;
         pList->current = newNode;
         pList->outOfBounds = LIST_OOB_END; // Set outOfBounds when list was initially empty
-    } else {
+    }
+    else
+    {
         // Adding to a non-empty list
         pList->tail->next = newNode;
         newNode->previous = pList->tail;
@@ -377,7 +373,6 @@ int List_append(List *pList, void *pItem) {
     pList->size++;
     return LIST_SUCCESS;
 }
-
 
 // Adds item to the front of pList, and makes the new item the current one.
 // Returns 0 on success, -1 on failure.
@@ -649,8 +644,10 @@ void *List_search(List *pList, COMPARATOR_FN pComparator, void *pComparisonArg)
 }
 
 // Function to print all elements in the list
-void List_print(List *pList) {
-    if (pList == NULL) {
+void List_print(List *pList)
+{
+    if (pList == NULL)
+    {
         printf("List is NULL.\n");
         return;
     }
@@ -658,11 +655,15 @@ void List_print(List *pList) {
     Node *originalCurrent = pList->current; // Store the original current pointer
     Node *currentNode = pList->head;
 
-    if (currentNode == NULL) {
+    if (currentNode == NULL)
+    {
         printf("List is empty.\n");
-    } else {
+    }
+    else
+    {
         printf("List elements: ");
-        while (currentNode != NULL) {
+        while (currentNode != NULL)
+        {
             printf("%d ", *((int *)currentNode->item)); // Assuming the item is a pointer to an integer
             currentNode = currentNode->next;
         }
