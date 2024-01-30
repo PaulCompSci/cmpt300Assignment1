@@ -11,15 +11,19 @@ static int listCount = 0;
 
 void pushToFreeNodeStack(Node *node);
 
-List *List_create() {
+List *List_create()
+{
     // Initialize list heads only once
-    if (!listHeadInitialized) {
-        for (int i = 0; i < LIST_MAX_NUM_HEADS; i++) {
-            listHeadArray[i].flag = 0;  // Mark as unused
+    if (!listHeadInitialized)
+    {
+        for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
+        {
+            listHeadArray[i].flag = 0; // Mark as unused
             // Other initializations are not necessary here
         }
         // Initialize free nodes
-        for (int i = 0; i < LIST_MAX_NUM_NODES; i++) {
+        for (int i = 0; i < LIST_MAX_NUM_NODES; i++)
+        {
             freeNodes[i] = &nodeArray[i];
         }
         freeNodeCount = LIST_MAX_NUM_NODES;
@@ -27,9 +31,11 @@ List *List_create() {
     }
 
     // Find an unused list head
-    for (int i = 0; i < LIST_MAX_NUM_HEADS; i++) {
-        if (listHeadArray[i].flag == 0) {
-            listHeadArray[i].flag = 1;  // Mark as used
+    for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
+    {
+        if (listHeadArray[i].flag == 0)
+        {
+            listHeadArray[i].flag = 1; // Mark as used
             listHeadArray[i].size = 0;
             listHeadArray[i].head = NULL;
             listHeadArray[i].tail = NULL;
@@ -44,8 +50,7 @@ List *List_create() {
     return NULL;
 }
 
-
-
+// Returns the number of items in pList.
 int List_count(List *pList)
 {
     // Check if the provided List pointer is NULL
@@ -58,33 +63,43 @@ int List_count(List *pList)
 
     // If pList is not NULL, it is safe to access its members.
     // Return the size of the list, which indicates how many items are in the list.
-    return pList->size ;
+    return pList->size;
 }
 
+// Returns a pointer to the first item in pList and makes the first item the current item.
+// Returns NULL and sets current item to NULL if list is empty.
 void *List_first(List *pList)
 {
-    // Check if the list is valid and not NULL
-    if (pList == NULL)
+    printf("this is asdkfjas;dfkajsdflk;");
+        // Check if the list is valid and not NULL
+        if (pList == NULL)
     {
+        printf("this is the first thing");
         return NULL;
     }
 
     // Check if the list is empty
     if (pList->head == NULL)
     {
+        // List is empty, set current to NULL and indicate that current is before the start
+        printf("this is the second thing");
         pList->current = NULL;
-        pList->outOfBounds = LIST_OOB_START; // Indicate that the current item is before the start
+        pList->outOfBounds = LIST_OOB_START;
         return NULL;
     }
 
-    // If the list is not empty, set the current item to the head of the list
+    // Set the current item to the head (first item) of the list
+    printf("this is the third thing");
     pList->current = pList->head;
-    pList->outOfBounds = LIST_OOB_END; // Reset the out of bounds status
+    // Reset the outOfBounds flag as current is now a valid item within the list
+    pList->outOfBounds = LIST_OOB_END;
 
     // Return the item stored in the head node
     return pList->head->item;
 }
 
+// Returns a pointer to the last item in pList and makes the last item the current item.
+// Returns NULL and sets current item to NULL if list is empty.
 void *List_last(List *pList)
 {
     // Check if the list is valid and not NULL
@@ -96,21 +111,26 @@ void *List_last(List *pList)
     // Check if the list is empty
     if (pList->tail == NULL)
     {
+        // List is empty, set current to NULL and indicate that current is beyond the end
         pList->current = NULL;
-        pList->outOfBounds = LIST_OOB_END; // Indicate that the current item is beyond the end
+        pList->outOfBounds = LIST_OOB_END;
         return NULL;
     }
 
-    // If the list is not empty, set the current item to the tail of the list
+    // Set the current item to the tail (last item) of the list
     pList->current = pList->tail;
-    pList->outOfBounds = LIST_OOB_START; // Reset the out of bounds status
+    // Reset the outOfBounds flag as current is now a valid item within the list
+    pList->outOfBounds = LIST_OOB_START;
 
     // Return the item stored in the tail node
     return pList->tail->item;
 }
-
+// Advances pList's current item by one, and returns a pointer to the new current item.
+// If this operation advances the current item beyond the end of the pList, a NULL pointer
+// is returned and the current item is set to be beyond end of pList.
 void *List_next(List *pList)
 {
+
     // Check if the list is valid and not NULL
     if (pList == NULL)
     {
@@ -124,18 +144,24 @@ void *List_next(List *pList)
         return NULL;
     }
 
-    // Check if the current item is before the start of the list
+    // If the current item is at the start (but not in the list), move to the head
     if (pList->outOfBounds == LIST_OOB_START)
     {
-        pList->current = pList->head;      // Set the current item to the head
-        pList->outOfBounds = LIST_OOB_END; // Reset the out of bounds status
-        return pList->current != NULL ? pList->current->item : NULL;
+        pList->current = pList->head;
+        // If the list is empty, return NULL
+        if (pList->current == NULL)
+        {
+            pList->outOfBounds = LIST_OOB_END;
+            return NULL;
+        }
+    }
+    else
+    {
+        // Move the current item to the next node
+        pList->current = pList->current->next;
     }
 
-    // Move the current item to the next node
-    pList->current = pList->current->next;
-
-    // Check if the current item has moved beyond the end of the list
+    // Check if we have moved beyond the end of the list
     if (pList->current == NULL)
     {
         pList->outOfBounds = LIST_OOB_END;
@@ -157,22 +183,22 @@ void *List_prev(List *pList)
         return NULL;
     }
 
-    // Check if the current item is NULL or before the start of the list
-    if (pList->current == NULL || pList->outOfBounds == LIST_OOB_START)
+    // Check if the current item is before the start of the list
+    if (pList->outOfBounds == LIST_OOB_START)
     {
-        pList->outOfBounds = LIST_OOB_START; // Set the out of bounds status to start
+        // The current item is already before the start of the list
         return NULL;
     }
 
-    // Check if the current item is beyond the end of the list
-    if (pList->outOfBounds == LIST_OOB_END)
+    // If the current item is beyond the end of the list, set it to the tail
+    if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END)
     {
-        pList->current = pList->tail;      // Set the current item to the tail
-        pList->outOfBounds = LIST_OOB_END; // Reset the out of bounds status
+        pList->current = pList->tail;
+        pList->outOfBounds = LIST_OOB_START;
         return pList->current != NULL ? pList->current->item : NULL;
     }
 
-    // Move the current item to the previous node
+    // Back up the current item by one
     pList->current = pList->current->previous;
 
     // Check if the current item has moved before the start of the list
@@ -199,11 +225,6 @@ void *List_curr(List *pList)
     // Check if the current item is NULL or if the current pointer is out of bounds
     if (pList->current == NULL || pList->outOfBounds == LIST_OOB_START || pList->outOfBounds == LIST_OOB_END)
     {
-
-        if (pList->current == NULL)
-            printf("null problem");
-
-        printf("I am here2");
         return NULL;
     }
 
@@ -325,8 +346,10 @@ int List_insert_before(List *pList, void *pItem)
 
 // Adds item to the end of pList, and makes the new item the current one.
 // Returns 0 on success, -1 on failure.
-int List_append(List *pList, void *pItem) {
-    if (pList == NULL || freeNodeCount <= 0) {
+int List_append(List *pList, void *pItem)
+{
+    if (pList == NULL || freeNodeCount <= 0)
+    {
         return LIST_FAIL;
     }
 
@@ -335,19 +358,23 @@ int List_append(List *pList, void *pItem) {
     newNode->next = NULL;
     newNode->previous = pList->tail;
 
-    if (pList->head == NULL) {
+    if (pList->head == NULL)
+    {
         // If the list is empty, this node becomes the head, tail, and current.
         pList->head = newNode;
         pList->tail = newNode;
         pList->current = newNode;
-        pList->outOfBounds = 0;  // No longer out of bounds.
-    } else {
+        pList->outOfBounds = 0; // No longer out of bounds.
+    }
+    else
+    {
         // Adding to a non-empty list.
         pList->tail->next = newNode;
         newNode->previous = pList->tail;
         pList->tail = newNode;
 
-        if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END) {
+        if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END)
+        {
             // If current was NULL or at the end, update it to the new node.
             pList->current = newNode;
             pList->outOfBounds = 0;
@@ -358,7 +385,6 @@ int List_append(List *pList, void *pItem) {
     pList->size++;
     return LIST_SUCCESS;
 }
-
 
 // Adds item to the front of pList, and makes the new item the current one.
 // Returns 0 on success, -1 on failure.
@@ -532,19 +558,21 @@ void List_concat(List *pList1, List *pList2)
 // pList and all its nodes no longer exists after the operation; its head and nodes are
 // available for future operations.
 typedef void (*FREE_FN)(void *pItem);
-typedef void (*FREE_FN)(void *pItem); // Make sure this is declared somewhere in your header file
-
-void List_free(List *pList, FREE_FN pItemFreeFn) {
-    if (pList == NULL) {
+void List_free(List *pList, FREE_FN pItemFreeFn)
+{
+    if (pList == NULL)
+    {
         return;
     }
 
     Node *currentNode = pList->head;
-    while (currentNode != NULL) {
+    while (currentNode != NULL)
+    {
         Node *temp = currentNode;
         currentNode = currentNode->next;
-        
-        if (pItemFreeFn != NULL && temp->item != NULL) {
+
+        if (pItemFreeFn != NULL && temp->item != NULL)
+        {
             (*pItemFreeFn)(temp->item);
         }
 
@@ -572,7 +600,6 @@ void List_free(List *pList, FREE_FN pItemFreeFn) {
     printf("List freed. Current number of lists: %d\n", listCount);
     printf("Free node count: %d\n", freeNodeCount);
 }
-
 
 void pushToFreeNodeStack(Node *node)
 {
