@@ -423,52 +423,49 @@ int List_prepend(List *pList, void *pItem)
 // then do not change the pList and return NULL.
 void *List_remove(List *pList)
 {
-    // Check if the list is valid, not NULL, and if the current item is within bounds
     if (pList == NULL || pList->current == NULL || pList->outOfBounds != LIST_OOB_END)
     {
-        
-         return NULL;
+        return NULL;
     }
 
-    // Store the item to be removed
     void *itemToRemove = pList->current->item;
+    Node *nodeToRemove = pList->current;
 
-    // If the node to be removed is the only node in the list
     if (pList->head == pList->current && pList->tail == pList->current)
     {
-        printf("asdfadfadfasdfadf1");
+        // Removing the only node in the list
         pList->head = NULL;
         pList->tail = NULL;
         pList->current = NULL;
+        pList->outOfBounds = LIST_OOB_START; // List is now empty
     }
     else if (pList->head == pList->current)
-    { // If the node to be removed is the head
-    printf("asdfadfadfas777dfadfadadasd");
+    {
+        // Removing the head node
         pList->head = pList->current->next;
         pList->head->previous = NULL;
         pList->current = pList->head;
     }
     else if (pList->tail == pList->current)
-    { // If the node to be removed is the tail
-    printf("asdfadfa3434dfasdfadf");
+    {
+        // Removing the tail node
         pList->tail = pList->current->previous;
         pList->tail->next = NULL;
-        pList->current = NULL;
-        pList->outOfBounds = LIST_OOB_END;
+        pList->current = pList->tail;
+        pList->outOfBounds = LIST_OOB_END; // Current is now the last item
     }
     else
-    { // If the node is in the middle of the list
-    printf("asdfadfadf0000asdfadf");
+    {
+        // Removing a middle node
         pList->current->previous->next = pList->current->next;
         pList->current->next->previous = pList->current->previous;
-        pList->current = pList->current->next;
+        pList->current = pList->current->next; // Move current to the next node
     }
 
     // Clear the removed node
-    // Note: Depending on how you manage free nodes, you may want to add it back to the pool of free nodes.
-    pList->current->item = NULL;
-    pList->current->next = NULL;
-    pList->current->previous = NULL;
+    nodeToRemove->item = NULL;
+    nodeToRemove->next = NULL;
+    nodeToRemove->previous = NULL;
 
     // Update the size of the list
     pList->size--;
