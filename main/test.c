@@ -1,5 +1,4 @@
 #include "list.h"
-
 #include <stdio.h>
 
 void testCreateList();
@@ -8,11 +7,16 @@ void testListAppend();
 
 int main()
 {
+
     printf("\n");
     testCreateList();
 
     printf("\n");
     testListCount();
+
+    printf("\n");
+
+
     return 0;
 }
 
@@ -73,28 +77,33 @@ void testCreateList()
 
 void testListCount()
 {
-    printf("testing List_count function : \n");
+
     List *list1 = List_create();
     List *list2 = List_create();
-    printf("%d", List_count(list1));
 
-    if (List_count(list1) == 0)
-    {
+    int integer1 = 1;
+    int integer2 = 2;
+    int integer3 = 3;
+    int integer4 = 4;
+    int integer5 = 5;
+    int success1 = List_append(list1, &integer1);
+    int success2 = List_append(list1, &integer2);
+    int success3 = List_append(list1, &integer3);
+    int success4 = List_append(list1, &integer4);
+    int success5 = List_append(list1, &integer5);
 
-        printf("Test Passed! \n");
-    }
+    printf("size of list1 : %d", List_count(list1));
+
+    if (List_count(list1) == 5)
+        printf("Test PASSED! \n");
+    else
+        printf("Test FAILED! \n");
+    void *currentItem = List_curr(list1);
+
+    if (List_count(list1) == 5 && List_count(list2) == 0)
+        printf("Test Passed ! \n");
     else
     {
-
-        printf("Test Failed! \n");
-    }
-
-    if (List_count(list2) == 0)
-    {
-        printf("Test Passed! \n");
-    }
-    else
-    {
-        printf("Test Failed! \n");
+        printf("Test FAILED ! \n");
     }
 }

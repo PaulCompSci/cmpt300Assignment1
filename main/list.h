@@ -27,6 +27,7 @@ typedef struct List_s List;
 struct List_s
 {
     // TODO: You should change this!
+    int flag ;
     int size;
     Node *head;
     Node *tail;

@@ -7,60 +7,46 @@ static List listHeadArray[LIST_MAX_NUM_HEADS];
 static int listHeadInitialized = 0;
 static Node *freeNodes[LIST_MAX_NUM_NODES];
 static int freeNodeCount = 0;
-static int activeListCount = 0;
+static int listCount = 0;
 
 void pushToFreeNodeStack(Node *node);
 
-static void initializeListHeads()
-{
-    for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
-    {
-        listHeadArray[i].size = 0;
-        listHeadArray[i].head = NULL;
-        listHeadArray[i].tail = NULL;
-        listHeadArray[i].current = NULL;
-        listHeadArray[i].outOfBounds = LIST_OOB_START;
-    }
-    for (int i = 0; i < LIST_MAX_NUM_NODES; i++)
-    {
-        freeNodes[i] = &nodeArray[i];
-    }
-    freeNodeCount = LIST_MAX_NUM_NODES;
-}
-
-// Makes a new, empty list, and returns its reference on success.
-// Returns a NULL pointer on failure.
-List *List_create()
-{
-    
-    if (!listHeadInitialized)
-    {
-        initializeListHeads();
-        listHeadInitialized = 1;
-    }
-
-    if (activeListCount >= LIST_MAX_NUM_HEADS)
-    {
-        return NULL; // Maximum number of lists already created
-    }
-
-    for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
-    {
-        if (listHeadArray[i].size == 0 && listHeadArray[i].head == NULL && listHeadArray[i].tail == NULL)
-        {
-            listHeadArray[i].size = 1; // Mark as used
+List *List_create() {
+    if (!listHeadInitialized) {
+        for (int i = 0; i < LIST_MAX_NUM_HEADS; i++) {
+            listHeadArray[i].size = 0;  // Initially, all list heads are unused
             listHeadArray[i].head = NULL;
             listHeadArray[i].tail = NULL;
             listHeadArray[i].current = NULL;
             listHeadArray[i].outOfBounds = LIST_OOB_START;
-            activeListCount++; // Increment the count of active lists
-            printf("current number of list in list_create : %d \n", activeListCount);
+        }
+        for (int i = 0; i < LIST_MAX_NUM_NODES; i++) {
+            freeNodes[i] = &nodeArray[i];
+        }
+        freeNodeCount = LIST_MAX_NUM_NODES;
+        listHeadInitialized = 1;
+    }
+
+    if (listCount >= LIST_MAX_NUM_HEADS) {
+        return NULL;  // All list heads are in use
+    }
+
+    for (int i = 0; i < LIST_MAX_NUM_HEADS; i++) {
+        if (listHeadArray[i].size == 0) {  // Find an unused list head
+            listHeadArray[i].size = 1;  // Mark as used
+            listHeadArray[i].head = NULL;
+            listHeadArray[i].tail = NULL;
+            listHeadArray[i].current = NULL;
+            listHeadArray[i].outOfBounds = LIST_OOB_START;
+            listCount++;
             return &listHeadArray[i];
         }
     }
 
-    return NULL;
+    return NULL;  // No unused list heads available
 }
+
+
 int List_count(List *pList)
 {
     // Check if the provided List pointer is NULL
@@ -73,7 +59,7 @@ int List_count(List *pList)
 
     // If pList is not NULL, it is safe to access its members.
     // Return the size of the list, which indicates how many items are in the list.
-    return pList->size;
+    return pList->size -1 ;
 }
 
 void *List_first(List *pList)
@@ -204,20 +190,11 @@ void *List_prev(List *pList)
 // Returns a pointer to the current item in pList.
 void *List_curr(List *pList)
 {
-    // Check if the list is valid and not NULL
-    if (pList == NULL)
-    {
+if (pList->current == NULL) {
         return NULL;
     }
-
-    // Check if the current item is NULL or if the current pointer is out of bounds
-    if (pList->current == NULL || pList->outOfBounds == LIST_OOB_START || pList->outOfBounds == LIST_OOB_END)
-    {
-        return NULL;
-    }
-
-    // Return the item stored in the current node
     return pList->current->item;
+
 }
 
 // Adds the new item to pList directly after the current item, and makes item the current item.
@@ -334,35 +311,40 @@ int List_insert_before(List *pList, void *pItem)
 
 // Adds item to the end of pList, and makes the new item the current one.
 // Returns 0 on success, -1 on failure.
-int List_append(List *pList, void *pItem)
-{
-    if (pList == NULL || freeNodeCount <= 0)
-    {
+int List_append(List *pList, void *pItem) {
+    if (pList == NULL || freeNodeCount <= 0) {
         return LIST_FAIL;
     }
 
-    // Pop a free node from the stack
     Node *newNode = freeNodes[--freeNodeCount];
     newNode->item = pItem;
     newNode->next = NULL;
     newNode->previous = pList->tail;
 
-    if (pList->head == NULL)
-    {
+    if (pList->head == NULL) {
+        // If the list is empty, this node becomes the head, tail, and current.
         pList->head = newNode;
-    }
-    else
-    {
+        pList->tail = newNode;
+        pList->current = newNode;
+        pList->outOfBounds = 0;  // No longer out of bounds.
+    } else {
+        // Adding to a non-empty list.
         pList->tail->next = newNode;
+        newNode->previous = pList->tail;
+        pList->tail = newNode;
+
+        if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END) {
+            // If current was NULL or at the end, update it to the new node.
+            pList->current = newNode;
+            pList->outOfBounds = 0;
+        }
+        // If current is not NULL and not at the end, do not change it.
     }
 
-    pList->tail = newNode;
-    pList->current = newNode;
     pList->size++;
-    pList->outOfBounds = LIST_OOB_END;
-
     return LIST_SUCCESS;
 }
+
 
 // Adds item to the front of pList, and makes the new item the current one.
 // Returns 0 on success, -1 on failure.
@@ -573,9 +555,10 @@ void List_free(List *pList, FREE_FN pItemFreeFn)
     pList->size = 0;
     pList->outOfBounds = LIST_OOB_START;
 
-    activeListCount--;
+    listCount--;
 
-    printf("current number of list in list_free : %d \n", activeListCount);
+    printf("current number of list in list_free : %d \n", listCount);
+    printf("current free node count in list_free : %d \n", freeNodeCount);
 }
 
 void pushToFreeNodeStack(Node *node)
