@@ -7,193 +7,140 @@
 int main()
 {
     List *list1 = List_create();
-    printf("%d \n", List_count(list1));
-    int integer1 = 1;
+    if (List_curr(list1) == 0)
+        printf("List_curr test1 passed \n");
+    else
+        printf("List_curr test2 failed \n");
 
+    // inserting element into the lsit
+    int integer1 = 1;
     int integer2 = 2;
     int integer3 = 3;
     int integer4 = 4;
     int integer5 = 5;
     int integer6 = 6;
     int success1 = List_append(list1, &integer1);
-    void *testing = List_curr(list1);
-    if (testing != NULL)
-    {
-        printf("this is current number : %d \n", *(int *)testing);
-    }
-    else
-    {
-        printf("Current item is NULL or out of bounds.\n");
-    }
-    
     int success2 = List_append(list1, &integer2);
     int success3 = List_append(list1, &integer3);
     int success4 = List_append(list1, &integer4);
     int success5 = List_append(list1, &integer5);
     int success6 = List_append(list1, &integer6);
+    void *testing = List_curr(list1);
+
+    // 1 -> 2 -> 3 ->4 ->5 ->6
+
+    if (testing != NULL && *(int *)testing == 6)
+    {
+        printf("List_curr test2 passed \n");
+    }
+    else
+    {
+        printf("List_curr test2 failed \n");
+    }
+
+    void *listFirst = List_first(list1);
+    if (listFirst != NULL && *(int *)listFirst == 1)
+        printf("List_first test1 passed \n");
+    else
+        printf("List_first test1 failed \n");
+
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 1)
+        printf("List_curr test3 Passed \n ");
+    else
+        printf("List_curr test3 Failed \n");
+
+    void *listLast = List_last(list1);
+    if (listLast != NULL && *(int *)listLast == 6)
+        printf("List_last test 1 Passed \n");
+    else
+        printf("List_last test1 Failed \n");
+
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 6)
+        printf("List_curr test4 Passed \n ");
+    else
+        printf("List_curr test4 Failed \n");
+
+    void *listPrev = List_prev(list1);
+    if (listPrev != NULL && *(int *)listPrev == 5)
+        printf("List_prev test 1 Passed \n");
+    else
+        printf("List_prev test1 Failed \n");
+
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 5)
+        printf("List_curr test5 Passed \n ");
+    else
+        printf("List_curr test5 Failed \n");
+
+    /*
+        testing insert after
+        expected : 1 -> 2 -> 3 -> 4 -> 5 -> 200 -> 6
+
+    */
+
+    int integer200 = 200;
+    int success200 = List_insert_after(list1, &integer200);
+
     List_print(list1);
-    printf("%d \n", List_count(list1));
-    void *listCurrTest1 = List_curr(list1);
-    if (listCurrTest1 != NULL)
-    {
-        printf("this is current number : %d \n", *(int *)listCurrTest1);
-    }
-    else
-    {
-        printf("Current item is NULL or out of bounds.\n");
-    }
+    printf("print statement above should produce 1->2->3->4->5->200->6\n");
 
-    void *firstElement = List_first(list1);
-    if (firstElement != NULL)
-    {
-        printf("this is first item : %d \n", *(int *)firstElement);
-    }
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 200)
+        printf("List_curr test6 Passed \n ");
     else
-    {
-        printf("first item is not accessible");
-    }
+        printf("List_curr test6 Failed \n");
 
-    void *listCurrTest2 = List_curr(list1);
-    if (listCurrTest2 != NULL)
-        printf("this is current number : %d \n", *(int *)listCurrTest2);
-    else
-        printf("Current item is NULL or out of bounds.\n");
+    /*
+        testing insert before
+        expected : 1 ->2 -> 3-> 4-> 5 -> 999 -> 200 ->6
+    */
 
-    // testing next item
-    void *nextItemTest1 = List_next(list1);
-    if (nextItemTest1 != NULL)
-        printf("this is current number : %d \n", *(int *)nextItemTest1);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    void *listCurrTest3 = List_curr(list1);
-    if (listCurrTest3 != NULL)
-        printf("this is current number : %d \n", *(int *)listCurrTest3);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    void *nextItemTest2 = List_next(list1);
-    if (nextItemTest2 != NULL)
-        printf("this is current number : %d \n", *(int *)nextItemTest2);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    void *listCurrTest4 = List_curr(list1);
-    if (listCurrTest4 != NULL)
-        printf("this is current number : %d \n", *(int *)listCurrTest4);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    void *nextItemTest3 = List_next(list1);
-    if (nextItemTest3 != NULL)
-        printf("this is current number : %d \n", *(int *)nextItemTest3);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    void *listCurrTest5 = List_curr(list1);
-    if (listCurrTest5 != NULL)
-        printf("this is current number : %d \n", *(int *)listCurrTest5);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    // testing previous ite m
-    void *previousItemTest1 = List_prev(list1);
-    if (previousItemTest1 != NULL)
-        printf("this is current number : %d \n", *(int *)previousItemTest1);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    void *listCurrTest6 = List_curr(list1);
-    if (listCurrTest6 != NULL)
-        printf("this is current number : %d \n", *(int *)listCurrTest6);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    // testing list_last
-    void *testingListLast = List_last(list1);
-    if (testingListLast != NULL)
-        printf("this is current number : %d \n", *(int *)testingListLast);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    void *listCurrTest7 = List_curr(list1);
-    if (listCurrTest7 != NULL)
-        printf("this is current number : %d \n", *(int *)listCurrTest7);
-    else
-        printf("Current item is NULL or out of bounds.\n");
-
-    printf("this is a test : ");
+    int integer999 = 999;
+    int success999 = List_insert_before(list1, &integer999);
     List_print(list1);
+    printf("print statement above should produce 1->2->3->4->5->999->200->6\n");
 
-    int integer7 = 7;
-    int success7 = List_append(list1, &integer7);
-    printf("%d \n", success7);
-    void *current = List_curr(list1);
-    printf("current item : %d \n ", *(int *)current);
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 999)
+        printf("List_curr test7 Passed \n ");
+    else
+        printf("List_curr test7 Failed \n");
 
-    // // testing list_insert_after
-    // printf("Testing list_insert_after");
+    /*
+        testing list_insert_prepend
+        expected : 444 -> 1 ->2 -> 3-> 4-> 5 -> 999 -> 200 ->6
+    */
 
-    // void *firstElement100 = List_first(list1);
-    // int integer7 = 7;
+    int integer444 = 444;
+    int success444 = List_prepend(list1, &integer444);
+    List_print(list1);
+    printf("print statement above should produce 444->1->2->3->4->5->999->200->6\n");
 
-    // int n = List_insert_after(list1, &integer7);
-    // List_print(list1);
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 444)
+        printf("List_curr test8 Passed \n ");
+    else
+        printf("List_curr test8 Failed \n");
 
-    // void *testingListLast1 = List_last(list1);
-    // if (testingListLast1 != NULL)
-    //     printf("this is current number : %d \n", *(int *)testingListLast1);
-    // else
-    //     printf("Current item is NULL or out of bounds.\n");
+    /*
+        testing : List_remove
+        expected : 1 ->2 -> 3-> 4-> 5 -> 999 -> 200 ->6
+        removed : 444
+        current : 1
+    */
+    void *removed = List_remove(list1);
+    if (removed != NULL && *(int *)removed == 444)
+        printf("List_remove test1 passed \n");
+    else
+        printf("List_remove test1 Failed \n");
 
-    // void *listCurrTest8 = List_curr(list1);
-    // if (listCurrTest8 != NULL)
-    //     printf("this is current number : %d \n", *(int *)listCurrTest8);
-    // else
-    //     printf("Current item is NULL or out of bounds.\n");
+    
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 1)
+        printf("List_curr test9 Passed \n ");
+    else
+        printf("List_curr test9 Failed \n");
 
-    // void *firstElement1 = List_first(list1);
-    // if (firstElement1 != NULL)
-    // {
-    //     printf("this is first item : %d \n", *(int *)firstElement1);
-    // }
-    // else
-    // {
-    //     printf("first item is not accessible");
-    // }
-
-    // void *currItem = List_curr(list1);
-    // if (currItem != NULL)
-    // {
-    //     printf("this is current item : %d \n", *(int *)currItem);
-    // }
-    // else
-    // {
-    //     printf("current item is not accessible");
-    // }
-
-    // int number = 200 ;
-
-    // int n30 = List_insert_after(list1,&number ) ;
-
-    // void* firstItem = List_first(list1) ;
-    // void* secondItem = List_next(list1) ;
-    // void* thirdItem = List_next(list1) ;
-    // void* fourthItem = List_next(list1) ;
-    // void* fifthItem = List_next(list1) ;
-    // void* sixthItem = List_next(list1) ;
-    // void* seventhItem = List_next(list1) ;
-    // void* eightItem = List_next(list1) ;
-    // printf("first item : %d \n", *(int*)firstItem);
-    // printf("second item : %d \n", *(int*)secondItem);
-    // printf("third item : %d \n", *(int*)thirdItem);
-    // printf("fourth item : %d \n", *(int*)fourthItem);
-    // printf("fifth item : %d \n", *(int*)fifthItem);
-    // printf("sixth item : %d \n", *(int*)sixthItem);
-    // printf("seventh item : %d \n", *(int*)seventhItem);
-    // printf("eighth item : %d \n", *(int*)eightItem);
-
-    return 0;
+    if (List_count(list1) == 8)
+        printf("List_count test1 Passed ! \n ");
+    else
+        printf("List count test1 Failed! \n");
+    ;
 }
 
 // #include "list.h"

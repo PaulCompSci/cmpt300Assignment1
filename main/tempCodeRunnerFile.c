@@ -255,6 +255,17 @@ int List_insert_after(List *pList, void *pItem)
         pList->head = newNode;
         pList->tail = newNode;
     }
+    // Handle the case when current is NULL or beyond the end of the list
+    else if (pList->current == NULL || pList->outOfBounds == LIST_OOB_END)
+    {
+        newNode->next = NULL;
+        newNode->previous = pList->tail;
+        if (pList->tail != NULL)
+        {
+            pList->tail->next = newNode;
+        }
+        pList->tail = newNode;
+    }
     // Normal case: insert after the current node
     else
     {
@@ -274,8 +285,8 @@ int List_insert_after(List *pList, void *pItem)
 
     // Make the new node the current one
     pList->current = newNode;
-    pList->outOfBounds = LIST_OOB_END; // Ensure current is within bounds
     pList->size++;
+    pList->outOfBounds = LIST_OOB_END;
 
     return LIST_SUCCESS;
 }
@@ -426,8 +437,7 @@ void *List_remove(List *pList)
     // Check if the list is valid, not NULL, and if the current item is within bounds
     if (pList == NULL || pList->current == NULL || pList->outOfBounds != LIST_OOB_END)
     {
-        
-         return NULL;
+        return NULL;
     }
 
     // Store the item to be removed
@@ -436,21 +446,18 @@ void *List_remove(List *pList)
     // If the node to be removed is the only node in the list
     if (pList->head == pList->current && pList->tail == pList->current)
     {
-        printf("asdfadfadfasdfadf1");
         pList->head = NULL;
         pList->tail = NULL;
         pList->current = NULL;
     }
     else if (pList->head == pList->current)
     { // If the node to be removed is the head
-    printf("asdfadfadfas777dfadfadadasd");
         pList->head = pList->current->next;
         pList->head->previous = NULL;
         pList->current = pList->head;
     }
     else if (pList->tail == pList->current)
     { // If the node to be removed is the tail
-    printf("asdfadfa3434dfasdfadf");
         pList->tail = pList->current->previous;
         pList->tail->next = NULL;
         pList->current = NULL;
@@ -458,7 +465,6 @@ void *List_remove(List *pList)
     }
     else
     { // If the node is in the middle of the list
-    printf("asdfadfadf0000asdfadf");
         pList->current->previous->next = pList->current->next;
         pList->current->next->previous = pList->current->previous;
         pList->current = pList->current->next;
