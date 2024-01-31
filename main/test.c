@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+void listPrint(List *list1);
+
 int main()
 {
     List *list1 = List_create();
@@ -25,8 +27,8 @@ int main()
     int success4 = List_append(list1, &integer4);
     int success5 = List_append(list1, &integer5);
     int success6 = List_append(list1, &integer6);
+    
     void *testing = List_curr(list1);
-
     // 1 -> 2 -> 3 ->4 ->5 ->6
 
     if (testing != NULL && *(int *)testing == 6)
@@ -208,8 +210,8 @@ int main()
     {
         printf("List count test3 Failed! \n");
     }
-
-    // printf("list above should look like 1 -> 3 -> 4-> 5 -> 999 -> 200 \n");
+    List_print(list1);
+    printf("list above should look like 1 -> 3 -> 4-> 5 -> 999 -> 200 \n");
 
     /*
         testing : List_trim function
@@ -229,7 +231,7 @@ int main()
     }
     else
     {
-        printf("%d", *(int *)List_curr(list1) == 999);
+        printf("this is the number that current pointing : %d", *(int *)List_curr(list1));
         printf("List_curr test12 Failed \n");
     }
 
@@ -242,10 +244,13 @@ int main()
         printf("List count test4 Failed! \n");
     }
 
-    // printf("list above should look like 1 -> 3 -> 4 -> 5 -> 999 \n");
+    List_print(list1) ;
+    printf("list above should look like 1 -> 3 -> 4 -> 5 -> 999 \n");
 
     return 0;
 }
+
+
 
 // #include "list.h"
 

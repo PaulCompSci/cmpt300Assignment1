@@ -9,7 +9,17 @@ static int listHeadInitialized = 0;
 static int freeNodeCount = 0;
 static int listCount = 0;
 
-void pushToFreeNodeStack(Node *node);
+void pushToFreeNodeStack(Node *node)
+{
+    if (freeNodeCount < LIST_MAX_NUM_NODES)
+    {
+        // Reset the node before pushing it back to the free node stack
+        node->item = NULL;
+        node->next = NULL;
+        node->previous = NULL;
+        freeNodes[freeNodeCount++] = node;
+    }
+}
 
 // Makes a new, empty list, and returns its reference on success.
 // Returns a NULL pointer on failure.
@@ -475,44 +485,48 @@ void *List_remove(List *pList)
 
 // Return last item and take it out of pList. Make the new last item the current one.
 // Return NULL if pList is initially empty.
-void *List_trim(List *pList) {
-    if (pList == NULL || pList->head == NULL || pList->tail == NULL) {
+void *List_trim(List *pList)
+{
+    if (pList == NULL || pList->head == NULL)
+    {
+        // If the list is NULL or empty, return NULL.
         return NULL;
     }
 
-    Node *nodeToRemove = pList->tail;
-    void *itemToRemove = nodeToRemove->item;
+    // Store the item to remove.
+    void *itemToRemove = pList->tail->item;
 
-    if (pList->head == pList->tail) {
-        // The list has only one node
+    // If there's only one item in the list.
+    if (pList->head == pList->tail)
+    {
+        // Free or reset the node, if necessary.
+        // Assuming there's a function to handle freeing or resetting nodes, like:
+        pushToFreeNodeStack(pList->tail);
         pList->head = NULL;
         pList->tail = NULL;
-        pList->current = NULL;
-        pList->outOfBounds = LIST_OOB_START;
-    } else {
-        // More than one node in the list
-        pList->tail = nodeToRemove->previous;
-        pList->tail->next = NULL;
+        pList->current = NULL; // After trimming, there's no current item.
+    }
+    else
+    {
+        // More than one item in the list.
+        Node *newTail = pList->tail->previous;
+        newTail->next = NULL;
 
-        // Only change current if it was pointing to the node being removed
-        if (pList->current == nodeToRemove) {
-            pList->current = pList->tail;
-            pList->outOfBounds = LIST_OOB_END; // Current is now at the last item
-        }
+        // Free or reset the old tail node.
+        // Assuming there's a function to handle freeing or resetting nodes, like:
+        pushToFreeNodeStack(pList->tail);
+
+        // Update the list's tail and current to the new last item.
+        pList->tail = newTail;
+        pList->current = newTail; // Make the new last item the current one.
     }
 
-    // Clear the removed node
-    nodeToRemove->item = NULL;
-    nodeToRemove->next = NULL;
-    nodeToRemove->previous = NULL;
-
+    // Decrease the size of the list.
     pList->size--;
 
+    // Return the removed item.
     return itemToRemove;
 }
-
-
-
 
 // Adds pList2 to the end of pList1. The current pointer is set to the current pointer of pList1.
 // pList2 no longer exists after the operation; its head is available
@@ -604,13 +618,13 @@ void List_free(List *pList, FREE_FN pItemFreeFn)
     printf("Free node count: %d\n", freeNodeCount);
 }
 
-void pushToFreeNodeStack(Node *node)
-{
-    if (freeNodeCount < LIST_MAX_NUM_NODES)
-    {
-        freeNodes[freeNodeCount++] = node;
-    }
-}
+// void pushToFreeNodeStack(Node *node)
+// {
+//     if (freeNodeCount < LIST_MAX_NUM_NODES)
+//     {
+//         freeNodes[freeNodeCount++] = node;
+//     }
+// }
 
 // Search pList, starting at the current item, until the end is reached or a match is found.
 // In this context, a match is determined by the comparator parameter. This parameter is a
@@ -660,35 +674,9 @@ void *List_search(List *pList, COMPARATOR_FN pComparator, void *pComparisonArg)
 
 // Function to print all elements in the list
 // Function to print all elements in the list
-// void List_print(List *pList)
-// {
-//     if (pList == NULL)
-//     {
-//         printf("List is NULL.\n");
-//         return;
-//     }
-
-//     Node *currentNode = pList->head;
-
-//     if (currentNode == NULL)
-//     {
-//         printf("List is empty.\n");
-//     }
-//     else
-//     {
-//         printf("List elements: ");
-//         while (currentNode != NULL)
-//         {
-//             printf("%d ", *((int *)currentNode->item)); // Assuming the item is a pointer to an integer
-//             currentNode = currentNode->next;
-//         }
-//         printf("\n");
-//     }
-// }
-
 void List_print(List *pList)
 {
-    
+
     if (pList == NULL)
     {
         printf("List is NULL.\n");
