@@ -5,7 +5,7 @@
 static Node nodeArray[LIST_MAX_NUM_NODES];
 static List listHeadArray[LIST_MAX_NUM_HEADS];
 static Node *freeNodes[LIST_MAX_NUM_NODES];
-static int listHeadInitialized = 0;
+static int listHeadFlag = 0;
 static int freeNodeCount = 0;
 static int listCount = 0;
 
@@ -16,7 +16,7 @@ void pushToFreeNodeStack(Node *node);
 List *List_create()
 {
     // Initialize list heads only once
-    if (!listHeadInitialized)
+    if (!listHeadFlag)
     {
         for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
         {
@@ -29,7 +29,7 @@ List *List_create()
             freeNodes[i] = &nodeArray[i];
         }
         freeNodeCount = LIST_MAX_NUM_NODES;
-        listHeadInitialized = 1;
+        listHeadFlag = 1;
     }
 
     // Find an unused list head

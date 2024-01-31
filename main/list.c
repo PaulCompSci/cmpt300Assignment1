@@ -5,7 +5,8 @@
 static Node nodeArray[LIST_MAX_NUM_NODES];
 static List listHeadArray[LIST_MAX_NUM_HEADS];
 static Node *freeNodes[LIST_MAX_NUM_NODES];
-static int listHeadInitialized = 0;
+static int listHeadFlag = 0;
+static int nextFreeListHead = 0;
 int freeNodeCount = 0;
 int listCount = 0;
 
@@ -13,49 +14,60 @@ void pushToFreeNodeStack(Node *node)
 {
     if (freeNodeCount < LIST_MAX_NUM_NODES)
     {
-        // Reset the node before pushing it back to the free node stack
+        // Reset the node befo re pushing it back to the free node stack
         node->item = NULL;
         node->next = NULL;
         node->previous = NULL;
         freeNodes[freeNodeCount++] = node;
     }
 }
+int listHeadCount()
+{
+    int freeCount = 0;
+    for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
+    {
+        if (listHeadArray[i].flag == 0)
+        {
+            freeCount++;
+        }
+    }
+    return freeCount;
+}
 
+// Makes a new, empty list, and returns its reference on success.
+// Returns a NULL pointer on failure.
 // Makes a new, empty list, and returns its reference on success.
 // Returns a NULL pointer on failure.
 List *List_create()
 {
     // Initialize list heads only once
-    if (!listHeadInitialized)
+    if (!listHeadFlag)
     {
         for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
         {
             listHeadArray[i].flag = 0; // Mark as unused
-            // Other initializations are not necessary here
         }
-        // Initialize free nodes
         for (int i = 0; i < LIST_MAX_NUM_NODES; i++)
         {
             freeNodes[i] = &nodeArray[i];
         }
         freeNodeCount = LIST_MAX_NUM_NODES;
-        listHeadInitialized = 1;
+        listHeadFlag = 1;
     }
 
-    // Find an unused list head
-    for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
+    // Directly access the next available list head
+    if (nextFreeListHead < LIST_MAX_NUM_HEADS)
     {
-        if (listHeadArray[i].flag == 0)
-        {
-            listHeadArray[i].flag = 1; // Mark as used
-            listHeadArray[i].size = 0;
-            listHeadArray[i].head = NULL;
-            listHeadArray[i].tail = NULL;
-            listHeadArray[i].current = NULL;
-            listHeadArray[i].outOfBounds = LIST_OOB_START;
-            listCount++;
-            return &listHeadArray[i];
-        }
+        List *newList = &listHeadArray[nextFreeListHead];
+        newList->flag = 1; // Mark as used
+        newList->size = 0;
+        newList->head = NULL;
+        newList->tail = NULL;
+        newList->current = NULL;
+        newList->outOfBounds = LIST_OOB_START;
+        listCount++;
+        nextFreeListHead++; // Increment to the next available list head
+        return newList;
     }
 
     // No available list heads
@@ -614,6 +626,7 @@ void List_free(List *pList, FREE_FN pItemFreeFn)
     if (pList == NULL)
         return;
 
+    // Free the items in the list
     Node *currentNode = pList->head;
     while (currentNode != NULL)
     {
@@ -627,27 +640,33 @@ void List_free(List *pList, FREE_FN pItemFreeFn)
         currentNode->item = NULL;
         currentNode->next = NULL;
         currentNode->previous = NULL;
-        pushToFreeNodeStack(currentNode); // This will increment freeNodeCount.
+        pushToFreeNodeStack(currentNode);
 
         currentNode = nextNode;
     }
 
+    // Reset list properties
     pList->size = 0;
     pList->head = NULL;
     pList->tail = NULL;
     pList->current = NULL;
     pList->outOfBounds = LIST_OOB_START;
-    pList->flag = 0; // Assuming this marks the list as "unused"
-    listCount--;     // Decrement active list count.
-}
 
-// void pushToFreeNodeStack(Node *node)
-// {
-//     if (freeNodeCount < LIST_MAX_NUM_NODES)
-//     {
-//         freeNodes[freeNodeCount++] = node;
-//     }
-// }
+    // Calculate the index of the list head being freed
+    int listHeadIndex = pList - listHeadArray;
+
+    // Reset the flag and potentially update nextFreeListHead
+    if (listHeadIndex >= 0 && listHeadIndex < LIST_MAX_NUM_HEADS)
+    {
+        pList->flag = 0;
+        if (listHeadIndex < nextFreeListHead)
+        {
+            nextFreeListHead = listHeadIndex;
+        }
+    }
+
+    listCount--; // Decrement active list count
+}
 
 // Search pList, starting at the current item, until the end is reached or a match is found.
 // In this context, a match is determined by the comparator parameter. This parameter is a

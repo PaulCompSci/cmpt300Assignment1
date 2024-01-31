@@ -485,6 +485,8 @@ int main()
 void test_List_create_free()
 {
     printf("Testing List_create() and List_free(): \n");
+
+    // Creating a fixed number of lists (less than the maximum)
     List *lists[10];
     for (int i = 0; i < 10; i++)
     {
@@ -492,40 +494,78 @@ void test_List_create_free()
         if (lists[i] == NULL)
         {
             printf("TEST FAILED: Could not create list %d\n", i);
-            return;
         }
     }
-    List *list11 = List_create();
-    if (list11 == NULL)
-    // Test maximum Lists amount
+    // Check if available list head size decreased correctly
+    if (listHeadCount() != LIST_MAX_NUM_HEADS - 10)
     {
-        printf("TEST PASSED\n");
+        printf("TEST FAILED: Available list head size not updated correctly after creation\n");
+    }
+
+    // Test creating one more list which should fail as we reach the limit
+    List *list11 = List_create();
+    if (list11 != NULL)
+    {
+        printf("TEST FAILED: Created more than 10 lists\n");
     }
     else
     {
-        printf("TEST FAILED\n");
+        printf("TEST PASSED: Could not create 11th list\n");
     }
-    for (int i = 0; i < 10; i++)
+
+    // Test freeing some of the lists
+    for (int i = 0; i < 5; i++)
     {
         List_free(lists[i], NULL);
         if (lists[i]->flag == true)
         {
             printf("TEST FAILED: Could not free list %d\n", i);
-            return;
         }
     }
-    list11 = List_create();
-    if (list11 == NULL)
+    // Check if available list head size increased correctly
+    if (listHeadCount() != LIST_MAX_NUM_HEADS - 5)
     {
-        printf("TEST FAILED \n");
+        printf("TEST FAILED: Available list head size not updated correctly after freeing\n");
+    }
+
+    // Recreate the lists after freeing
+    for (int i = 0; i < 5; i++)
+    {
+        lists[i] = List_create();
+        if (lists[i] == NULL)
+        {
+            printf("TEST FAILED: Could not recreate list %d after freeing\n", i);
+        }
+    }
+    // Check if available list head size decreased correctly after recreation
+    if (listHeadCount() != 0)
+    {
+        printf("TEST FAILED: Available list head size not updated correctly after recreating\n");
+    }
+
+    // Free all lists and check if the available list head size is reset correctly
+    for (int i = 0; i < 10; i++)
+    {
+        List_free(lists[i], NULL);
+    }
+    if (listHeadCount() == LIST_MAX_NUM_HEADS)
+    {
+        printf("TEST PASSED\n");
     }
     else
     {
-        printf("TEST PASSED \n");
+        printf("TEST FAILED: Available list head size not reset correctly after freeing all lists\n");
     }
 
-    List_free(list11, NULL);
-    if (list11->flag == false)
+    for (int i = 0; i < 9; i++)
+    {
+        lists[i] = List_create();
+        if (lists[i] == NULL)
+        {
+            printf("TEST FAILED: Could not recreate list %d after freeing\n", i);
+        }
+    }
+    if (listHeadCount() == 1)
     {
         printf("TEST PASSED\n");
     }
@@ -533,9 +573,42 @@ void test_List_create_free()
     {
         printf("TEST FAILED\n");
     }
-    return;
+    List_free(lists[1], NULL);
+    if (listHeadCount() == 2)
+    {
+        printf("TEST PASSED\n");
+    }
+    else
+    {
+        printf("TEST FAILED\n");
+    }
+    List *dummyList1 = List_create();
+    List *dummyList2 = List_create();
+    List *dummyList3 = List_create();
+    if (listHeadCount() == 0)
+    {
+        printf("TEST PASSED\n");
+    }
+    else
+    {
+        printf("TEST FAILED\n");
+    }
+    if (dummyList1 != NULL && dummyList2 != NULL && dummyList3 == NULL)
+    {
+        printf("TEST PASSED\n");
+    }
+    else
+    {
+        printf("TEST FAILED\n");
+    }
+    for (int i = 0; i < 9; i++)
+    {
+        List_free(lists[i], NULL);
+    }
+    List_free(dummyList1, NULL);
+    List_free(dummyList2, NULL);
+    List_free(dummyList3, NULL);
 }
-
 void test_List_count()
 {
     // printf("size of list1 : %d", List_count(list1));
@@ -1229,12 +1302,12 @@ void e2e_test()
     int currentSize = List_count(list1);
     const char *outOfBoundsStatus = getOOBString(list1->outOfBounds);
 
-    if (*(int *)currentItem == 14 && currentSize == 13 )
+    if (*(int *)currentItem == 14 && currentSize == 13)
     {
         printf("Final State Check of List1: PASSED\n");
     }
     else
-    {   
+    {
         printf("Final State Check of List1: FAILED\n");
     }
 
@@ -1266,7 +1339,6 @@ void e2e_test()
     {
 
         printf("Navigate Before Start of List1: PASSED\n");
-        
     }
     else
     {
@@ -1278,7 +1350,6 @@ void e2e_test()
 
     int integer16 = 16;
 
-    
     if (List_insert_after(list1, &integer16) == LIST_SUCCESS && *(int *)List_last(list1) == integer16)
     {
 
