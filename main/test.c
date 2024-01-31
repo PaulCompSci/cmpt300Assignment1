@@ -130,7 +130,6 @@ int main()
     else
         printf("List_remove test1 Failed \n");
 
-    
     if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 1)
         printf("List_curr test9 Passed \n ");
     else
@@ -140,7 +139,112 @@ int main()
         printf("List_count test1 Passed ! \n ");
     else
         printf("List count test1 Failed! \n");
-    ;
+
+    /*
+        testing : List_remove (this time from the second element)
+        expected : 1 -> 3 -> 4-> 5 -> 999 -> 200 ->6
+        current : 3
+    */
+    void *nextItem = List_next(list1);
+    void *removed1 = List_remove(list1);
+    if (removed1 != NULL && *(int *)removed1 == 2)
+
+        printf("List_removed test2 Passed \n");
+
+    else
+
+        printf("List_removed test2 Failed \n");
+
+    // Additional checks for List_curr and List_count as needed
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 3)
+    {
+        printf("List_curr test10 Passed \n");
+    }
+    else
+    {
+        printf("List_curr test10 Failed \n");
+    }
+
+    if (List_count(list1) == 7)
+    {
+        printf("List_count test2 Passed ! \n");
+    }
+    else
+    {
+        printf("List count test2 Failed! \n");
+    }
+
+    List_print(list1);
+    printf("list above should look like 1 -> 3 -> 4-> 5 -> 999 -> 200 ->6 \n ");
+
+    /*
+        testing : List_trim function
+        expected  : 1 -> 3 -> 4-> 5 -> 999 -> 200
+        current : 200
+        removed : 6
+
+    */
+    void *trim = List_trim(list1);
+    if (trim != NULL && *(int *)trim == 6)
+        printf("List_trim test1 Passed  ! \n");
+    else
+        printf("List_trim test1 Failed  ! \n");
+
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 200)
+    {
+        printf("List_curr test11 Passed \n");
+    }
+    else
+    {
+        if (List_curr(list1) == NULL)
+            printf("List_curr test11 Failed \n");
+    }
+
+    if (List_count(list1) == 6)
+    {
+        printf("List_count test3 Passed ! \n");
+    }
+    else
+    {
+        printf("List count test3 Failed! \n");
+    }
+
+    // printf("list above should look like 1 -> 3 -> 4-> 5 -> 999 -> 200 \n");
+
+    /*
+        testing : List_trim function
+        expected : 1 -> 3 -> 4-> 5 -> 999 ;
+        current : 999
+        removed : 200
+    */
+    void *trim2 = List_trim(list1);
+    if (trim2 != NULL && *(int *)trim2 == 200)
+        printf("List_trim test2 Passed  ! \n");
+    else
+        printf("List_trim test2 Failed  ! \n");
+
+    if (List_curr(list1) != NULL && *(int *)List_curr(list1) == 999)
+    {
+        printf("List_curr test12 Passed \n");
+    }
+    else
+    {
+        printf("%d", *(int *)List_curr(list1) == 999);
+        printf("List_curr test12 Failed \n");
+    }
+
+    if (List_count(list1) == 5)
+    {
+        printf("List_count test4 Passed ! \n");
+    }
+    else
+    {
+        printf("List count test4 Failed! \n");
+    }
+
+    // printf("list above should look like 1 -> 3 -> 4 -> 5 -> 999 \n");
+
+    return 0;
 }
 
 // #include "list.h"
