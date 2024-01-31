@@ -257,13 +257,40 @@ int List_insert_after(List *pList, void *pItem)
     Node *newNode = freeNodes[--freeNodeCount];
     newNode->item = pItem;
 
-    // Handle the case when the list is empty
-    if (pList->head == NULL)
+    // Case when current is NULL (either before the start or after the end)
+    if (pList->current == NULL)
     {
-        newNode->next = NULL;
-        newNode->previous = NULL;
-        pList->head = newNode;
-        pList->tail = newNode;
+        // If the list is empty, add the new node as the only item in the list
+        if (pList->head == NULL)
+        {
+            newNode->next = NULL;
+            newNode->previous = NULL;
+            pList->head = newNode;
+            pList->tail = newNode;
+        }
+        // If current is beyond the end, add new node at the end
+        else if (pList->outOfBounds == LIST_OOB_END)
+        {
+            newNode->next = NULL;
+            newNode->previous = pList->tail;
+            pList->tail->next = newNode;
+            pList->tail = newNode;
+        }
+        // If current is before the start, add new node at the start
+        else if (pList->outOfBounds == LIST_OOB_START)
+        {
+            newNode->next = pList->head;
+            newNode->previous = NULL;
+            if (pList->head != NULL)
+            {
+                pList->head->previous = newNode;
+            }
+            pList->head = newNode;
+            if (pList->tail == NULL)
+            {
+                pList->tail = newNode;
+            }
+        }
     }
     // Normal case: insert after the current node
     else
@@ -284,7 +311,7 @@ int List_insert_after(List *pList, void *pItem)
 
     // Make the new node the current one
     pList->current = newNode;
-    pList->outOfBounds = LIST_OOB_END; // Ensure current is within bounds
+    pList->outOfBounds = LIST_OOB_END; // Reset outOfBounds as current is now a valid item
     pList->size++;
 
     return LIST_SUCCESS;
