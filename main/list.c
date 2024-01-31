@@ -6,8 +6,8 @@ static Node nodeArray[LIST_MAX_NUM_NODES];
 static List listHeadArray[LIST_MAX_NUM_HEADS];
 static Node *freeNodes[LIST_MAX_NUM_NODES];
 static int listHeadInitialized = 0;
-static int freeNodeCount = 0;
-static int listCount = 0;
+int freeNodeCount = 0;
+int listCount = 0;
 
 void pushToFreeNodeStack(Node *node)
 {
@@ -447,35 +447,43 @@ void *List_remove(List *pList)
         pList->head = NULL;
         pList->tail = NULL;
         pList->current = NULL;
-        pList->outOfBounds = LIST_OOB_START; // List is now empty
+        pList->outOfBounds = LIST_OOB_START;
     }
     else if (pList->head == pList->current)
     {
         // Removing the head node
         pList->head = pList->current->next;
-        pList->head->previous = NULL;
+        if (pList->head)
+        {
+            pList->head->previous = NULL;
+        }
         pList->current = pList->head;
     }
     else if (pList->tail == pList->current)
     {
         // Removing the tail node
         pList->tail = pList->current->previous;
-        pList->tail->next = NULL;
+        if (pList->tail)
+        {
+            pList->tail->next = NULL;
+        }
         pList->current = pList->tail;
-        pList->outOfBounds = LIST_OOB_END; // Current is now the last item
     }
     else
     {
         // Removing a middle node
         pList->current->previous->next = pList->current->next;
         pList->current->next->previous = pList->current->previous;
-        pList->current = pList->current->next; // Move current to the next node
+        pList->current = pList->current->next;
     }
 
     // Clear the removed node
     nodeToRemove->item = NULL;
     nodeToRemove->next = NULL;
     nodeToRemove->previous = NULL;
+
+    // Return the node to the free pool
+    pushToFreeNodeStack(nodeToRemove);
 
     // Update the size of the list
     pList->size--;
@@ -533,41 +541,40 @@ void *List_trim(List *pList)
 // for future operations.
 void List_concat(List *pList1, List *pList2)
 {
-    // Check if both lists are valid and not NULL
     if (pList1 == NULL || pList2 == NULL)
-    {
         return;
-    }
 
-    // Check if pList2 is empty
     if (pList2->head == NULL)
-    {
-        return; // Nothing to concatenate if pList2 is empty
-    }
+        return; // pList2 is empty, nothing to do.
 
-    // If pList1 is empty, set its head and tail to those of pList2
     if (pList1->head == NULL)
     {
+        // If pList1 is empty, just set its head and tail to pList2's.
         pList1->head = pList2->head;
         pList1->tail = pList2->tail;
     }
     else
     {
-        // Concatenate pList2 to the end of pList1
+        // Attach pList2 at the end of pList1.
         pList1->tail->next = pList2->head;
         pList2->head->previous = pList1->tail;
         pList1->tail = pList2->tail;
     }
 
-    // Update the size of pList1
+    // Update the size of pList1 to include the nodes from pList2.
     pList1->size += pList2->size;
 
-    // Clear and make pList2's head available for future use
+    // Clear pList2 as it's now empty.
     pList2->head = NULL;
     pList2->tail = NULL;
     pList2->current = NULL;
     pList2->size = 0;
     pList2->outOfBounds = LIST_OOB_START;
+
+    // Decrement listCount if pList2 is no longer considered an active list.
+    listCount--;
+
+    // freeNodeCount remains unchanged as nodes are transferred, not freed.
 }
 
 // Delete pList. pItemFreeFn is a pointer to a routine that frees an item.
@@ -578,44 +585,33 @@ typedef void (*FREE_FN)(void *pItem);
 void List_free(List *pList, FREE_FN pItemFreeFn)
 {
     if (pList == NULL)
-    {
         return;
-    }
 
     Node *currentNode = pList->head;
     while (currentNode != NULL)
     {
-        Node *temp = currentNode;
-        currentNode = currentNode->next;
+        Node *nextNode = currentNode->next;
 
-        if (pItemFreeFn != NULL && temp->item != NULL)
+        if (pItemFreeFn != NULL && currentNode->item != NULL)
         {
-            (*pItemFreeFn)(temp->item);
+            pItemFreeFn(currentNode->item);
         }
 
-        // Clear the node
-        temp->item = NULL;
-        temp->next = NULL;
-        temp->previous = NULL;
+        currentNode->item = NULL;
+        currentNode->next = NULL;
+        currentNode->previous = NULL;
+        pushToFreeNodeStack(currentNode); // This will increment freeNodeCount.
 
-        // Return the node to the free pool
-        pushToFreeNodeStack(temp);
+        currentNode = nextNode;
     }
 
-    // Reset the list
     pList->size = 0;
     pList->head = NULL;
     pList->tail = NULL;
     pList->current = NULL;
     pList->outOfBounds = LIST_OOB_START;
-
-    // Reset the flag to mark it as unused
-    pList->flag = 0;
-    listCount--;
-
-    // Debugging information
-    printf("List freed. Current number of lists: %d\n", listCount);
-    printf("Free node count: %d\n", freeNodeCount);
+    pList->flag = 0; // Assuming this marks the list as "unused"
+    listCount--;     // Decrement active list count.
 }
 
 // void pushToFreeNodeStack(Node *node)
@@ -641,33 +637,35 @@ void List_free(List *pList, FREE_FN pItemFreeFn)
 typedef bool (*COMPARATOR_FN)(void *pItem, void *pComparisonArg);
 void *List_search(List *pList, COMPARATOR_FN pComparator, void *pComparisonArg)
 {
-    // Check if the list and comparator function are valid and not NULL
+    // Ensure the list and the comparator function are not NULL.
     if (pList == NULL || pComparator == NULL)
     {
+        printf("I am here");
         return NULL;
     }
 
-    // If the current pointer is before the start of the list, start from the first node
+    // If the current pointer is before the start of the list, start from the first node.
     if (pList->outOfBounds == LIST_OOB_START || pList->current == NULL)
     {
         pList->current = pList->head;
-        pList->outOfBounds = LIST_OOB_END; // Reset the out of bounds status
+        pList->outOfBounds = LIST_OOB_END; // Reset outOfBounds status.
     }
 
-    // Iterate through the list starting from the current item
+    // Iterate through the list starting from the current item.
     while (pList->current != NULL)
     {
-        // Check if the current item matches the comparison argument
+        // Check if the current item matches the comparison argument.
         if (pComparator(pList->current->item, pComparisonArg))
         {
-            return pList->current->item; // Match found, return the item
+            return pList->current->item; // Match found, return the item.
         }
 
-        // Move to the next item
+        // Move to the next item.
         pList->current = pList->current->next;
     }
 
-    // No match found, set current pointer beyond the end of the list
+    // No match found, set current pointer beyond the end of the list.
+
     pList->outOfBounds = LIST_OOB_END;
     return NULL;
 }

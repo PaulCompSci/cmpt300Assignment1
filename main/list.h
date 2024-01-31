@@ -9,6 +9,9 @@
 #define LIST_SUCCESS 0
 #define LIST_FAIL -1
 
+extern freeNodeCount;
+extern listCount;
+
 typedef struct Node_s Node;
 struct Node_s
 {
